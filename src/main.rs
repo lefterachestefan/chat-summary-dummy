@@ -27,4 +27,6 @@ use tracing_opentelemetry as _;
 use tracing_subscriber as _;
 use uuid as _;
 
-fn main() {}
+fn main() {
+    println!("nothing burger");
+}
