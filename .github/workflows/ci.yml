@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-and-tests:
+    name: Quality and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Cache cargo and sccache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            .cache/sccache
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock', 'rust-toolchain.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Flake check
+        run: nix flake check --no-build
+
+      - name: Test and audit
+        run: |
+          nix develop .#ci -c bash -c '
+            set -euo pipefail
+            export CARGO_INCREMENTAL=0
+            export RUSTC_WRAPPER=sccache
+            export SCCACHE_DIR="$GITHUB_WORKSPACE/.cache/sccache"
+            export SCCACHE_CACHE_SIZE=700M
+
+            cargo test --workspace -- --skip test_full_integration_pipeline
+            cargo audit
+            sccache --show-stats
+          '

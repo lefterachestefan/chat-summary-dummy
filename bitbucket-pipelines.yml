@@ -1,0 +1,40 @@
+image: ubuntu@sha256:4fbb8e6a8395de5a7550b33509421a2bafbc0aab6c06ba2cef9ebffbc7092d90
+
+options:
+  max-time: 90
+
+definitions:
+  caches:
+    cargo-registry: /root/.cargo/registry
+    cargo-git: /root/.cargo/git
+    sccache:
+      key:
+        files:
+          - Cargo.lock
+          - rust-toolchain.toml
+      path: .cache/sccache
+
+pipelines:
+  default:
+    - parallel:
+        - step:
+            name: Quality and tests
+            caches:
+              - cargo-registry
+              - cargo-git
+              - sccache
+            script:
+              - sh ./scripts/ci-setup-nix.sh
+              - nix flake check --no-build
+              - |
+                nix develop .#ci -c bash -c '
+                  set -euo pipefail
+                  export CARGO_INCREMENTAL=0
+                  export RUSTC_WRAPPER=sccache
+                  export SCCACHE_DIR="$BITBUCKET_CLONE_DIR/.cache/sccache"
+                  export SCCACHE_CACHE_SIZE=700M
+
+                  cargo test --workspace -- --skip test_full_integration_pipeline
+                  cargo audit
+                  sccache --show-stats
+                '

@@ -1,0 +1,6 @@
+/target
+.direnv
+.env
+.fastembed_cache
+result
+result-*
