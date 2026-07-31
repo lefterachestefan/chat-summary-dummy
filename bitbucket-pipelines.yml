@@ -12,7 +12,15 @@ definitions:
         files:
           - Cargo.lock
           - rust-toolchain.toml
+          - flake.lock
       path: .cache/sccache
+    cargo-target:
+      key:
+        files:
+          - Cargo.lock
+          - rust-toolchain.toml
+          - flake.lock
+      path: target
 
 pipelines:
   default:
@@ -23,6 +31,7 @@ pipelines:
               - cargo-registry
               - cargo-git
               - sccache
+              - cargo-target
             script:
               - sh ./scripts/ci-setup-nix.sh
               - nix flake check --no-build
