@@ -42,7 +42,7 @@ jobs:
             export CARGO_INCREMENTAL=0
             export RUSTC_WRAPPER=sccache
             export SCCACHE_DIR="$GITHUB_WORKSPACE/.cache/sccache"
-            export SCCACHE_CACHE_SIZE=700M
+            export SCCACHE_CACHE_SIZE=10G
 
             cargo test --workspace -- --skip test_full_integration_pipeline
             cargo audit
