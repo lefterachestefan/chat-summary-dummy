@@ -28,5 +28,5 @@ use tracing_subscriber as _;
 use uuid as _;
 
 fn main() {
-    println!("");
+    println!("a");
 }
